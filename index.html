@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kshitiz Srivastava | Embedded Systems Engineer</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ========== RESET & BASE ========== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a1f2e;
+            --bg-card-hover: #222840;
+            --accent: #00ff88;
+            --accent-dim: #00ff8833;
+            --accent-blue: #00d4ff;
+            --accent-purple: #a855f7;
+            --accent-orange: #ff6b35;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-dim: #475569;
+            --border: #1e293b;
+            --glow: 0 0 20px rgba(0, 255, 136, 0.3);
+            --glow-blue: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* ========== SCROLLBAR ========== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+        /* ========== CANVAS BACKGROUND ========== */
+        #circuit-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            background: rgba(10, 14, 23, 0.85);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            padding: 0.6rem 2rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-logo .blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.3rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent);
+            background: var(--accent-dim);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 2px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        /* ========== HERO SECTION ========== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem 2rem;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text .greeting {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.3s forwards;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.5s forwards;
+        }
+
+        .hero-text h1 .highlight {
+            background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.7s forwards;
+        }
+
+        .typewriter-text {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-blue);
+            border-right: 2px solid var(--accent);
+            padding-right: 4px;
+            animation: blink 0.8s step-end infinite;
+        }
+
+        .hero-text .description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            max-width: 500px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.9s forwards;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 1.1s forwards;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border: 2px solid var(--accent);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--accent);
+            box-shadow: var(--glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent-blue);
+            border: 2px solid var(--accent-blue);
+        }
+
+        .btn-outline:hover {
+            background: rgba(0, 212, 255, 0.1);
+            box-shadow: var(--glow-blue);
+            transform: translateY(-2px);
+        }
+
+        /* Oscilloscope visual */
+        .hero-visual {
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.6s forwards;
+        }
+
+        .oscilloscope {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .oscilloscope::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-blue), var(--accent-purple));
+        }
+
+        .oscilloscope-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .oscilloscope-header span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .status-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .status-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-dots .red { background: #ff5f57; }
+        .status-dots .yellow { background: #febc2e; }
+        .status-dots .green { background: #28c840; }
+
+        #oscilloscope-canvas {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+        }
+
+        .oscilloscope-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .osc-stat {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .osc-stat .label {
+            color: var(--text-dim);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .osc-stat .value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ========== SECTIONS ========== */
+        section {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+        }
+
+        .section-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .section-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        /* ========== EXPERIENCE ========== */
+        .experience-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .experience-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-blue));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .experience-card:hover {
+            border-color: var(--accent);
+            transform: translateX(8px);
+            box-shadow: -4px 0 30px var(--accent-dim);
+        }
+
+        .experience-card:hover::before {
+            opacity: 1;
+        }
+
+        .exp-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .exp-role {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .exp-company {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .exp-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            white-space: nowrap;
+        }
+
+        .exp-type {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .exp-points {
+            list-style: none;
+        }
+
+        .exp-points li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .exp-points li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+
+        .exp-points li strong {
+            color: var(--text-primary);
+        }
+
+        /* ========== PROJECTS ========== */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-blue));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.08);
+        }
+
+        .project-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .project-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .project-icon.drone {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 212, 255, 0.15));
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .project-icon.bot {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(255, 107, 53, 0.15));
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        .project-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .project-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .project-desc {
+            list-style: none;
+            flex: 1;
+        }
+
+        .project-desc li {
+            position: relative;
+            padding-left: 1.2rem;
+            margin-bottom: 0.6rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .project-desc li::before {
+            content: '#';
+            position: absolute;
+            left: 0;
+            color: var(--accent-purple);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+
+        .project-desc li strong {
+            color: var(--text-primary);
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .project-tags span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--accent);
+            border: 1px solid var(--accent-dim);
+        }
+
+        /* ========== SKILLS ========== */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-category {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .skill-category:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px var(--accent-dim);
+        }
+
+        .skill-cat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .skill-cat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            background: var(--accent-dim);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .skill-cat-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .skill-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill-chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .skill-chip:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--accent-dim);
+        }
+
+        /* ========== EDUCATION ========== */
+        .education-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .education-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue), var(--accent));
+        }
+
+        .education-card:hover {
+            border-color: var(--accent-purple);
+            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.1);
+        }
+
+        .edu-info h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .edu-info p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .edu-year {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-purple);
+            background: rgba(168, 85, 247, 0.1);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        /* ========== EXTRA CURRICULAR ========== */
+        .extra-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .extra-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent));
+        }
+
+        .extra-card:hover {
+            border-color: var(--accent-orange);
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.1);
+        }
+
+        .extra-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .extra-card p::before {
+            content: '~$';
+            position: absolute;
+            left: 0;
+            color: var(--accent-orange);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+
+        .extra-card strong {
+            color: var(--text-primary);
+        }
+
+        /* ========== CONTACT / FOOTER ========== */
+        .contact-section {
+            text-align: center;
+            padding: 4rem 2rem 2rem;
+        }
+
+        .contact-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-section h2 .highlight {
+            background: linear-gradient(135deg, var(--accent), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .contact-section p {
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto 2rem;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+
+        .contact-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .contact-link:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: var(--glow);
+        }
+
+        .contact-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer .accent {
+            color: var(--accent);
+        }
+
+        /* ========== SCROLL ANIMATIONS ========== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* stagger children */
+        .stagger-children .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .stagger-children .reveal:nth-child(2) { transition-delay: 0.1s; }
+        .stagger-children .reveal:nth-child(3) { transition-delay: 0.15s; }
+        .stagger-children .reveal:nth-child(4) { transition-delay: 0.2s; }
+        .stagger-children .reveal:nth-child(5) { transition-delay: 0.25s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse-ring {
+            0%   { transform: scale(1);   opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .status-online {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--accent);
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 1.3s forwards;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            position: relative;
+        }
+
+        .status-dot::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            animation: pulse-ring 1.5s ease-out infinite;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 900px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-visual {
+                max-width: 500px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%; left: 0; right: 0;
+                flex-direction: column;
+                background: var(--bg-secondary);
+                border-bottom: 1px solid var(--border);
+                padding: 1rem;
+            }
+
+            .nav-links.open { display: flex; }
+
+            .hamburger { display: flex; }
+
+            .hero-text h1 { font-size: 2rem; }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 4rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="circuit-canvas"></canvas>
+
+<!-- ====== NAVBAR ====== -->
+<nav class="navbar" id="navbar">
+    <a href="#" class="nav-logo">
+        <span>&lt;KS /&gt;</span><span class="blink">_</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#education">Education</a></li>
+        <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section class="hero" id="hero">
+    <div class="hero-container">
+        <div class="hero-text">
+            <p class="greeting">// Hello, World! I'm</p>
+            <h1>Kshitiz<br><span class="highlight">Srivastava</span></h1>
+            <p class="subtitle"><span class="typewriter-text" id="typewriter"></span></p>
+            <p class="description">
+                Building military-grade embedded systems, from PCB design to firmware.
+                Crafting firmware solutions with ARM Cortex-M4, ESP32, and real-time systems.
+            </p>
+            <div class="hero-buttons">
+                <a href="#contact" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    Get In Touch
+                </a>
+                <a href="#projects" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    View Projects
+                </a>
+            </div>
+            <div class="status-online">
+                <span class="status-dot"></span>
+                Available for full-time roles
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="oscilloscope">
+                <div class="oscilloscope-header">
+                    <div class="status-dots">
+                        <span class="red"></span>
+                        <span class="yellow"></span>
+                        <span class="green"></span>
+                    </div>
+                    <span>firmware_output.c -- SIGNAL MONITOR</span>
+                </div>
+                <canvas id="oscilloscope-canvas"></canvas>
+                <div class="oscilloscope-info">
+                    <div class="osc-stat">
+                        <span class="label">PULSE PERIOD</span>
+                        <span class="value">50ns</span>
+                    </div>
+                    <div class="osc-stat">
+                        <span class="label">DUTY CYCLE</span>
+                        <span class="value">0.01%</span>
+                    </div>
+                    <div class="osc-stat">
+                        <span class="label">RANGE</span>
+                        <span class="value">3 km</span>
+                    </div>
+                    <div class="osc-stat">
+                        <span class="label">PROTOCOL</span>
+                        <span class="value">DigiMesh</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== EXPERIENCE ====== -->
+<section id="experience">
+    <div class="section-container">
+        <div class="section-header reveal">
+            <span class="section-number">01.</span>
+            <h2 class="section-title">Experience</h2>
+            <div class="section-line"></div>
+        </div>
+        <div class="stagger-children">
+            <div class="experience-card reveal">
+                <div class="exp-header">
+                    <div>
+                        <h3 class="exp-role">Embedded Systems Intern</h3>
+                        <span class="exp-company">@ Navyug Infosolutions Pvt. Ltd.</span>
+                    </div>
+                    <span class="exp-date">Feb 2026 - Sep 2026</span>
+                </div>
+                <p class="exp-type">Full-time</p>
+                <ul class="exp-points">
+                    <li>Designed and tested <strong>military-grade RF PCBs</strong> and embedded system PCBs utilizing <strong>DigiMesh, BLE, and Wi-Fi</strong>, ensuring signal integrity, noise attenuation, and manufacturability for volume production.</li>
+                    <li>Developed firmware and debugged PCBs utilizing <strong>STM32G431RBT, GaN FETs</strong>, and a <strong>75W laser diode</strong>, achieving a precise <strong>50ns pulse period</strong> and <strong>0.01% duty cycle PWM</strong> to transmit 8 bytes up to <strong>3 km</strong>.</li>
+                    <li>Developed a military-grade navigation system utilizing <strong>Real-Time Kinematic (RTK)</strong> techniques, testing VSWR, SNR, and impedance matching using <strong>MATLAB and NanoVNA</strong>, to achieve cm-level accuracy.</li>
+                    <li>Designed IoT-enabled electronics for an <strong>Anti-Tank MK-2 Mine</strong> with secure <strong>OTA-enabled asyncio firmware</strong>, successfully passing all harsh military condition tests.</li>
+                    <li>Main contributor to <strong>IoT MQTT network infrastructure</strong>; debugged hardware/firmware issues in live environments on-site at military establishments in Roorkee and Bangalore.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== PROJECTS ====== -->
+<section id="projects">
+    <div class="section-container">
+        <div class="section-header reveal">
+            <span class="section-number">02.</span>
+            <h2 class="section-title">Projects</h2>
+            <div class="section-line"></div>
+        </div>
+        <div class="projects-grid stagger-children">
+            <div class="project-card reveal">
+                <div class="project-icon drone">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                </div>
+                <span class="project-date">March 2025</span>
+                <h3 class="project-title">ESP32 Quadcopter</h3>
+                <ul class="project-desc">
+                    <li>Developed a <strong>PID flight controller</strong> with MPU6050 IMU over I2C</li>
+                    <li>Built Android joystick interface using <strong>RemoteXY</strong> for <strong>UDP-based</strong> control of pitch, yaw, roll, and throttle</li>
+                    <li>Implemented <strong>Kalman Filter</strong> for improved rotation rate prediction</li>
+                </ul>
+                <div class="project-tags">
+                    <span>ESP32</span>
+                    <span>PID</span>
+                    <span>I2C</span>
+                    <span>Kalman Filter</span>
+                    <span>UDP</span>
+                </div>
+            </div>
+            <div class="project-card reveal">
+                <div class="project-icon bot">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><path d="M12 2v4"/></svg>
+                </div>
+                <span class="project-date">February 2025</span>
+                <h3 class="project-title">Autonomous & RC Bots</h3>
+                <ul class="project-desc">
+                    <li>Line-Following bot with <strong>Bang-Bang algorithm</strong></li>
+                    <li>Remote-Controlled Car with wireless interface</li>
+                    <li><strong>Obstacle-Avoiding Bot</strong> using ultrasonic sensors for autonomous navigation</li>
+                </ul>
+                <div class="project-tags">
+                    <span>Arduino</span>
+                    <span>Ultrasonic</span>
+                    <span>IR Sensors</span>
+                    <span>Control Systems</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== SKILLS ====== -->
+<section id="skills">
+    <div class="section-container">
+        <div class="section-header reveal">
+            <span class="section-number">03.</span>
+            <h2 class="section-title">Skills & Tools</h2>
+            <div class="section-line"></div>
+        </div>
+        <div class="skills-grid stagger-children">
+            <div class="skill-category reveal">
+                <div class="skill-cat-header">
+                    <div class="skill-cat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </div>
+                    <span class="skill-cat-name">Programming</span>
+                </div>
+                <div class="skill-items">
+                    <span class="skill-chip">C</span>
+                    <span class="skill-chip">C++</span>
+                    <span class="skill-chip">MicroPython</span>
+                    <span class="skill-chip">Bash Scripting</span>
+                    <span class="skill-chip">Assembly</span>
+                </div>
+            </div>
+            <div class="skill-category reveal">
+                <div class="skill-cat-header">
+                    <div class="skill-cat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                    </div>
+                    <span class="skill-cat-name">Technologies</span>
+                </div>
+                <div class="skill-items">
+                    <span class="skill-chip">Embedded Linux</span>
+                    <span class="skill-chip">FreeRTOS</span>
+                    <span class="skill-chip">Git</span>
+                    <span class="skill-chip">Bare-Metal</span>
+                    <span class="skill-chip">DigiMesh</span>
+                    <span class="skill-chip">LoRa</span>
+                </div>
+            </div>
+            <div class="skill-category reveal">
+                <div class="skill-cat-header">
+                    <div class="skill-cat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <span class="skill-cat-name">Protocols</span>
+                </div>
+                <div class="skill-items">
+                    <span class="skill-chip">I2C</span>
+                    <span class="skill-chip">SPI</span>
+                    <span class="skill-chip">UART</span>
+                    <span class="skill-chip">BLE</span>
+                    <span class="skill-chip">UDP</span>
+                    <span class="skill-chip">MQTT</span>
+                    <span class="skill-chip">RS-232</span>
+                </div>
+            </div>
+            <div class="skill-category reveal">
+                <div class="skill-cat-header">
+                    <div class="skill-cat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v3"/></svg>
+                    </div>
+                    <span class="skill-cat-name">Hardware</span>
+                </div>
+                <div class="skill-items">
+                    <span class="skill-chip">8085</span>
+                    <span class="skill-chip">8-bit AVR</span>
+                    <span class="skill-chip">ESP32</span>
+                    <span class="skill-chip">ARM Cortex-M4</span>
+                    <span class="skill-chip">NanoVNA</span>
+                    <span class="skill-chip">Digi XBee 3</span>
+                </div>
+            </div>
+            <div class="skill-category reveal">
+                <div class="skill-cat-header">
+                    <div class="skill-cat-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                    </div>
+                    <span class="skill-cat-name">Dev Tools</span>
+                </div>
+                <div class="skill-items">
+                    <span class="skill-chip">ESP-IDF</span>
+                    <span class="skill-chip">XCTU</span>
+                    <span class="skill-chip">STM32CubeIDE</span>
+                    <span class="skill-chip">PlatformIO</span>
+                    <span class="skill-chip">LTSpice</span>
+                    <span class="skill-chip">KiCAD</span>
+                    <span class="skill-chip">MATLAB</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== EDUCATION ====== -->
+<section id="education">
+    <div class="section-container">
+        <div class="section-header reveal">
+            <span class="section-number">04.</span>
+            <h2 class="section-title">Education</h2>
+            <div class="section-line"></div>
+        </div>
+        <div class="education-card reveal">
+            <div class="edu-info">
+                <h3>Govind Ballabh Pant University of Agriculture and Technology</h3>
+                <p>Bachelor in Electronics and Communication Engineering</p>
+            </div>
+            <span class="edu-year">2023 - 2027</span>
+        </div>
+        <br>
+        <div class="extra-card reveal">
+            <div class="skill-cat-header" style="margin-bottom: 1rem;">
+                <div class="skill-cat-icon" style="background: rgba(255,107,53,0.15); border-color: rgba(255,107,53,0.3);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff6b35" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <span class="skill-cat-name" style="color: var(--accent-orange);">Extra-Curricular</span>
+            </div>
+            <p>As a member of <strong>The Robotics Club, Pantnagar</strong> organized a college-wide workshop with over <strong>100 participants</strong> and helped competing teams in equipment failure and debugging.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ====== CONTACT ====== -->
+<section id="contact">
+    <div class="section-container">
+        <div class="contact-section reveal">
+            <h2>Let's <span class="highlight">Connect</span></h2>
+            <p>
+                Looking for a full-time role in embedded systems. Let's build something incredible together.
+            </p>
+            <div class="contact-links">
+                <a href="mailto:kshitiz.srivas@gmail.com" class="contact-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    kshitiz.srivas@gmail.com
+                </a>
+                <a href="tel:+919315812080" class="contact-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                    +91 9315812080
+                </a>
+                <a href="https://linkedin.com" target="_blank" class="contact-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                    LinkedIn
+                </a>
+                <a href="https://github.com" target="_blank" class="contact-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+                    GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>Designed & Built by <span class="accent">Kshitiz Srivastava</span> | <span class="accent">&lt;/&gt;</span> with embedded precision</p>
+</footer>
+
+<script>
+// ========== CIRCUIT BOARD CANVAS BACKGROUND ==========
+const canvas = document.getElementById('circuit-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Node {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = Math.random() * 2 + 1;
+        this.alpha = Math.random() * 0.3 + 0.05;
+        this.pulseSpeed = Math.random() * 0.02 + 0.005;
+        this.pulseOffset = Math.random() * Math.PI * 2;
+    }
+
+    draw(time) {
+        const pulse = Math.sin(time * this.pulseSpeed + this.pulseOffset) * 0.5 + 0.5;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 255, 136, ${this.alpha * pulse})`;
+        ctx.fill();
+    }
+}
+
+class Trace {
+    constructor(startNode, endNode) {
+        this.startNode = startNode;
+        this.endNode = endNode;
+        this.alpha = 0.04;
+        this.signalPos = 0;
+        this.signalSpeed = Math.random() * 0.005 + 0.001;
+        this.hasSignal = Math.random() > 0.7;
+    }
+
+    draw(time) {
+        ctx.beginPath();
+        ctx.moveTo(this.startNode.x, this.startNode.y);
+
+        // Right-angle traces like actual PCB
+        const midX = this.startNode.x;
+        const midY = this.endNode.y;
+        ctx.lineTo(midX, midY);
+        ctx.lineTo(this.endNode.x, this.endNode.y);
+
+        ctx.strokeStyle = `rgba(0, 255, 136, ${this.alpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        // Moving signal dot
+        if (this.hasSignal) {
+            this.signalPos = (this.signalPos + this.signalSpeed) % 1;
+            let sx, sy;
+            if (this.signalPos < 0.5) {
+                const t = this.signalPos * 2;
+                sx = this.startNode.x;
+                sy = this.startNode.y + (midY - this.startNode.y) * t;
+            } else {
+                const t = (this.signalPos - 0.5) * 2;
+                sx = midX + (this.endNode.x - midX) * t;
+                sy = midY;
+            }
+
+            ctx.beginPath();
+            ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(0, 212, 255, 0.7)`;
+            ctx.fill();
+        }
+    }
+}
+
+const nodes = [];
+const traces = [];
+const gridSize = 80;
+
+for (let x = gridSize; x < window.innerWidth; x += gridSize) {
+    for (let y = gridSize; y < window.innerHeight; y += gridSize) {
+        if (Math.random() > 0.6) {
+            nodes.push(new Node(
+                x + (Math.random() - 0.5) * 30,
+                y + (Math.random() - 0.5) * 30
+            ));
+        }
+    }
+}
+
+for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+        const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+        if (dist < 200 && Math.random() > 0.7) {
+            traces.push(new Trace(nodes[i], nodes[j]));
+        }
+    }
+}
+
+function animateCircuit(time) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    traces.forEach(t => t.draw(time));
+    nodes.forEach(n => n.draw(time));
+    requestAnimationFrame(animateCircuit);
+}
+requestAnimationFrame(animateCircuit);
+
+// ========== OSCILLOSCOPE CANVAS ==========
+const oscCanvas = document.getElementById('oscilloscope-canvas');
+const oscCtx = oscCanvas.getContext('2d');
+
+function resizeOsc() {
+    const rect = oscCanvas.parentElement.getBoundingClientRect();
+    oscCanvas.width = oscCanvas.offsetWidth * 2;
+    oscCanvas.height = 200 * 2;
+    oscCtx.scale(2, 2);
+}
+resizeOsc();
+
+const waveData = [];
+const waveLength = 300;
+for (let i = 0; i < waveLength; i++) waveData.push(0);
+
+function drawOscilloscope(time) {
+    const w = oscCanvas.width / 2;
+    const h = 200;
+
+    oscCtx.fillStyle = '#0a0e17';
+    oscCtx.fillRect(0, 0, w, h);
+
+    // Grid
+    oscCtx.strokeStyle = 'rgba(0, 255, 136, 0.06)';
+    oscCtx.lineWidth = 0.5;
+    for (let x = 0; x < w; x += 30) {
+        oscCtx.beginPath();
+        oscCtx.moveTo(x, 0);
+        oscCtx.lineTo(x, h);
+        oscCtx.stroke();
+    }
+    for (let y = 0; y < h; y += 30) {
+        oscCtx.beginPath();
+        oscCtx.moveTo(0, y);
+        oscCtx.lineTo(w, y);
+        oscCtx.stroke();
+    }
+
+    // Center line
+    oscCtx.strokeStyle = 'rgba(0, 255, 136, 0.15)';
+    oscCtx.beginPath();
+    oscCtx.moveTo(0, h / 2);
+    oscCtx.lineTo(w, h / 2);
+    oscCtx.stroke();
+
+    // Waveform - composite signal
+    waveData.shift();
+    const t = time * 0.001;
+    const signal = Math.sin(t * 3) * 30 +
+                   Math.sin(t * 7.3) * 15 +
+                   Math.sin(t * 13.7) * 8 +
+                   (Math.random() - 0.5) * 4;
+    waveData.push(signal);
+
+    // Glow effect
+    oscCtx.shadowBlur = 8;
+    oscCtx.shadowColor = '#00ff88';
+
+    oscCtx.beginPath();
+    oscCtx.strokeStyle = '#00ff88';
+    oscCtx.lineWidth = 2;
+    for (let i = 0; i < waveData.length; i++) {
+        const x = (i / waveData.length) * w;
+        const y = h / 2 + waveData[i];
+        if (i === 0) oscCtx.moveTo(x, y);
+        else oscCtx.lineTo(x, y);
+    }
+    oscCtx.stroke();
+
+    // Second channel
+    oscCtx.beginPath();
+    oscCtx.strokeStyle = 'rgba(0, 212, 255, 0.5)';
+    oscCtx.lineWidth = 1;
+    for (let i = 0; i < waveData.length; i++) {
+        const x = (i / waveData.length) * w;
+        const y = h / 2 + Math.sin((i / waveData.length) * Math.PI * 4 + t * 2) * 25;
+        if (i === 0) oscCtx.moveTo(x, y);
+        else oscCtx.lineTo(x, y);
+    }
+    oscCtx.stroke();
+
+    oscCtx.shadowBlur = 0;
+
+    requestAnimationFrame(drawOscilloscope);
+}
+requestAnimationFrame(drawOscilloscope);
+
+// ========== TYPEWRITER EFFECT ==========
+const typewriterEl = document.getElementById('typewriter');
+const phrases = [
+    'Embedded Systems Engineer',
+    'Firmware Developer',
+    'PCB Designer',
+    'IoT Architect',
+    'ARM Cortex-M4 Expert',
+];
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function typeEffect() {
+    const current = phrases[phraseIndex];
+
+    if (isDeleting) {
+        typewriterEl.textContent = current.substring(0, charIndex - 1);
+        charIndex--;
+    } else {
+        typewriterEl.textContent = current.substring(0, charIndex + 1);
+        charIndex++;
+    }
+
+    let speed = isDeleting ? 40 : 80;
+
+    if (!isDeleting && charIndex === current.length) {
+        speed = 2000;
+        isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        speed = 500;
+    }
+
+    setTimeout(typeEffect, speed);
+}
+typeEffect();
+
+// ========== NAVBAR SCROLL ==========
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ========== HAMBURGER MENU ==========
+const hamburger = document.getElementById('hamburger');
+const navLinks = document.getElementById('navLinks');
+hamburger.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+});
+
+// Close menu on link click
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => navLinks.classList.remove('open'));
+});
+
+// ========== ACTIVE NAV LINK ==========
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY + 200;
+    sections.forEach(section => {
+        const top = section.offsetTop;
+        const height = section.offsetHeight;
+        const id = section.getAttribute('id');
+        const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+        if (link) {
+            link.classList.toggle('active', scrollY >= top && scrollY < top + height);
+        }
+    });
+});
+
+// ========== SCROLL REVEAL ==========
+const revealElements = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+revealElements.forEach(el => observer.observe(el));
+
+// ========== SKILL CHIP HOVER SOUND (visual pulse) ==========
+document.querySelectorAll('.skill-chip').forEach(chip => {
+    chip.addEventListener('mouseenter', () => {
+        chip.style.transform = 'translateY(-2px) scale(1.05)';
+    });
+    chip.addEventListener('mouseleave', () => {
+        chip.style.transform = '';
+    });
+});
+</script>
+</body>
+</html>
